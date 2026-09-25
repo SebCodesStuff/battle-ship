@@ -1,0 +1,145 @@
+:root {
+  --sea: #0b3d5c;
+  --sea-deep: #062536;
+  --foam: #d7ecf7;
+  --ship: #4a5560;
+  --hit: #c0392b;
+  --miss: #7f9db0;
+  --preview-ok: #2ecc71;
+  --preview-bad: #e74c3c;
+  --ink: #0a1620;
+  --panel: rgba(255, 255, 255, 0.08);
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  color: var(--foam);
+  background: radial-gradient(circle at top, #145a7a, var(--sea-deep));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.app__title {
+  margin: 0 0 0.5rem;
+  font-size: 2.25rem;
+  letter-spacing: 0.04em;
+}
+
+.app__boards {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 1rem;
+}
+
+.board h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.board__grid {
+  display: inline-grid;
+  gap: 2px;
+  padding: 0.5rem;
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.board__row {
+  display: grid;
+  grid-template-columns: repeat(10, 28px);
+  gap: 2px;
+}
+
+.cell {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(11, 61, 92, 0.65);
+  cursor: pointer;
+  padding: 0;
+}
+
+.cell:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.cell:focus-visible {
+  outline: 2px solid #f1c40f;
+  outline-offset: 1px;
+}
+
+.cell--ship {
+  background: var(--ship);
+}
+
+.cell--hit {
+  background: var(--hit);
+}
+
+.cell--miss {
+  background: var(--miss);
+}
+
+.cell--preview-valid {
+  box-shadow: inset 0 0 0 2px var(--preview-ok);
+}
+
+.cell--preview-invalid {
+  box-shadow: inset 0 0 0 2px var(--preview-bad);
+}
+
+.placement-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.placement-controls button,
+.status button {
+  background: #f1c40f;
+  color: #1a1a1a;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status__announcements {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+@media (max-width: 640px) {
+  .board__row {
+    grid-template-columns: repeat(10, 24px);
+  }
+
+  .cell {
+    width: 24px;
+    height: 24px;
+  }
+}
