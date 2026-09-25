@@ -5,14 +5,16 @@ import { StatusBar } from "./components/StatusBar";
 import type { ICoord, IGameState } from "./types";
 import {
   createInitialGameState,
-  fireAsComputer,
   fireAsPlayer,
   flipPlacementShip,
   moveCursor,
   placeCurrentShip,
   setCursor,
+  takeComputerTurn,
 } from "./utilities/gameState/gameState";
 import "./App.css";
+
+const COMPUTER_THINK_MS = 1000;
 
 function turnText(state: IGameState): string {
   if (state.phase === "placing") {
@@ -25,7 +27,7 @@ function turnText(state: IGameState): string {
   }
   return state.turn === "player"
     ? "Your turn — fire on the opponent grid."
-    : "Computer turn — fire on your grid (playing as the computer).";
+    : "Computer is thinking…";
 }
 
 export default function App() {
@@ -57,9 +59,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [state.phase]);
 
-  const playerInteractive =
-    state.phase === "placing" ||
-    (state.phase === "playing" && state.turn === "computer");
+  useEffect(() => {
+    if (state.phase !== "playing" || state.turn !== "computer") return;
+    const timeoutId = window.setTimeout(() => {
+      setState((current) => takeComputerTurn(current));
+    }, COMPUTER_THINK_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [state.phase, state.turn]);
+
+  const playerInteractive = state.phase === "placing";
   const opponentInteractive =
     state.phase === "playing" && state.turn === "player";
 
@@ -69,9 +77,6 @@ export default function App() {
         let next = setCursor(s, coord);
         next = placeCurrentShip(next);
         return next;
-      }
-      if (s.phase === "playing" && s.turn === "computer") {
-        return fireAsComputer(s, coord);
       }
       return s;
     });

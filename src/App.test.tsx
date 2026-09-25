@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
 
@@ -16,6 +16,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  jest.useRealTimers();
   jest.restoreAllMocks();
 });
 
@@ -53,8 +54,9 @@ describe("App", () => {
     expect(screen.getByText(/vertical/i)).toBeInTheDocument();
   });
 
-  it("starts the game after placing all ships and allows firing turns", async () => {
-    const user = userEvent.setup();
+  it("lets the computer fire one shot after a one second pause", async () => {
+    jest.useFakeTimers();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     render(<App />);
 
     await placeAllShips(user);
@@ -72,18 +74,29 @@ describe("App", () => {
     });
     await user.click(target);
 
-    expect(
-      screen.getByText(/computer turn — fire on your grid/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/computer is thinking/i)).toBeInTheDocument();
 
     const playerBoard = screen.getByRole("region", { name: /your fleet/i });
-    const reply = within(playerBoard).getByRole("gridcell", {
-      name: /^row 10 column 10,/i,
+    const playerCells = within(playerBoard).getAllByRole("gridcell");
+    for (const cell of playerCells) {
+      expect(cell).toBeDisabled();
+    }
+    expect(
+      playerCells.some((cell) =>
+        /hit|miss/i.test(cell.getAttribute("aria-label") ?? ""),
+      ),
+    ).toBe(false);
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
     });
-    await user.click(reply);
 
     expect(
       screen.getByText(/your turn — fire on the opponent grid/i),
     ).toBeInTheDocument();
+    const shots = within(playerBoard)
+      .getAllByRole("gridcell")
+      .filter((cell) => /hit|miss/i.test(cell.getAttribute("aria-label") ?? ""));
+    expect(shots).toHaveLength(1);
   });
 });
