@@ -5,6 +5,11 @@ import type {
   IOwner,
   IPlacementShip,
 } from "../../types";
+import {
+  chooseComputerShot,
+  createEmptyKnowledge,
+  recordComputerShot,
+} from "../combat/computerShot";
 import { fireAt } from "../combat/fireAt";
 import {
   createEmptyGrid,
@@ -44,6 +49,7 @@ export function createInitialGameState(rng: IRng = Math.random): IGameState {
     cursor: { row: 0, col: 0 },
     announcements: [],
     winner: null,
+    computerKnowledge: createEmptyKnowledge(),
   };
 }
 
@@ -189,6 +195,10 @@ export function fireAsComputer(state: IGameState, coord: ICoord): IGameState {
     ...state,
     playerGrid: result.grid,
     playerFleet: result.fleet,
+    computerKnowledge: recordComputerShot(state.computerKnowledge, coord, {
+      hit: result.hit,
+      sunk: result.sunk,
+    }),
     announcements: appendAnnouncements(
       state.announcements,
       sunkAnnouncement,
@@ -198,4 +208,13 @@ export function fireAsComputer(state: IGameState, coord: ICoord): IGameState {
     phase: result.won ? "finished" : state.phase,
     turn: result.won ? state.turn : "player",
   };
+}
+
+export function takeComputerTurn(
+  state: IGameState,
+  rng: IRng = Math.random,
+): IGameState {
+  if (state.phase !== "playing" || state.turn !== "computer") return state;
+  const coord = chooseComputerShot(state.computerKnowledge, rng);
+  return fireAsComputer(state, coord);
 }

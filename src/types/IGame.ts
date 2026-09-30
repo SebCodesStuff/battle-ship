@@ -11,6 +11,8 @@ export type IGamePhase = "placing" | "playing" | "finished";
 
 export type ITurn = "player" | "computer";
 
+export type IKnownCell = "unknown" | "miss" | "hit" | "sunk";
+
 export type IOwner = "player" | "opponent";
 
 export type IAnnouncement =
@@ -31,4 +33,5 @@ export type IGameState = {
   cursor: ICoord;
   announcements: IAnnouncement[];
   winner: IOwner | null;
+  computerKnowledge: IKnownCell[][];
 };

@@ -1,4 +1,8 @@
 import type { IPlacementShip } from "../../types";
+import {
+  chooseComputerShot,
+  createEmptyKnowledge,
+} from "../combat/computerShot";
 import { FLEET } from "../ships/fleet";
 import {
   createInitialGameState,
@@ -7,6 +11,7 @@ import {
   flipPlacementShip,
   moveCursor,
   placeCurrentShip,
+  takeComputerTurn,
 } from "./gameState";
 
 function seededRng(seed: number): () => number {
@@ -42,6 +47,7 @@ describe("createInitialGameState", () => {
     } satisfies IPlacementShip);
     expect(state.cursor).toEqual({ row: 0, col: 0 });
     expect(state.opponentFleet.remainingShips).toBe(5);
+    expect(state.computerKnowledge).toEqual(createEmptyKnowledge());
   });
 });
 
@@ -130,5 +136,48 @@ describe("combat turns", () => {
         (a) => a.kind === "sunk" && a.owner === "opponent",
       ),
     ).toBe(true);
+  });
+
+  it("records a miss, a live hit, and a sunk patrol boat on the computer's board", () => {
+    let state = placeAllPlayerShips();
+    state = fireAsPlayer(state, { row: 9, col: 9 });
+    state = fireAsComputer(state, { row: 9, col: 9 });
+    expect(state.computerKnowledge[9][9]).toBe("miss");
+
+    state = fireAsPlayer(state, { row: 8, col: 8 });
+    state = fireAsComputer(state, { row: 4, col: 0 });
+    expect(state.computerKnowledge[4][0]).toBe("hit");
+
+    state = fireAsPlayer(state, { row: 8, col: 7 });
+    state = fireAsComputer(state, { row: 0, col: 0 });
+    expect(state.computerKnowledge[0][0]).toBe("hit");
+
+    state = fireAsPlayer(state, { row: 8, col: 6 });
+    state = fireAsComputer(state, { row: 4, col: 1 });
+    expect(state.computerKnowledge[4][0]).toBe("sunk");
+    expect(state.computerKnowledge[4][1]).toBe("sunk");
+    expect(state.computerKnowledge[0][0]).toBe("hit");
+  });
+});
+
+describe("takeComputerTurn", () => {
+  it("fires the cell the chooser picks and hands the turn back", () => {
+    let state = placeAllPlayerShips();
+    state = fireAsPlayer(state, { row: 9, col: 9 });
+    const rng = () => 0;
+    const expected = chooseComputerShot(state.computerKnowledge, rng);
+
+    state = takeComputerTurn(state, rng);
+
+    expect(state.playerGrid[expected.row][expected.col].isShot).toBe(true);
+    expect(state.computerKnowledge[expected.row][expected.col]).not.toBe(
+      "unknown",
+    );
+    expect(state.turn).toBe("player");
+  });
+
+  it("does nothing when it is not the computer's turn", () => {
+    const state = placeAllPlayerShips();
+    expect(takeComputerTurn(state, () => 0)).toBe(state);
   });
 });

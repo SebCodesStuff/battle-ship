@@ -5,6 +5,7 @@ export type {
   ICoord,
   IGamePhase,
   IGameState,
+  IKnownCell,
   IOwner,
   ITurn,
 } from "./IGame";
