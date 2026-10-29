@@ -2,7 +2,6 @@
   --sea: #0b3d5c;
   --sea-deep: #062536;
   --foam: #d7ecf7;
-  --ship: #4a5560;
   --hit: #c0392b;
   --miss: #7f9db0;
   --preview-ok: #2ecc71;
@@ -52,8 +51,11 @@ body {
 }
 
 .board__grid {
+  --cell: 28px;
+  --gap: 2px;
+  position: relative;
   display: inline-grid;
-  gap: 2px;
+  gap: var(--gap);
   padding: 0.5rem;
   background: var(--panel);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -61,17 +63,27 @@ body {
 
 .board__row {
   display: grid;
-  grid-template-columns: repeat(10, 28px);
-  gap: 2px;
+  grid-template-columns: repeat(10, var(--cell));
+  gap: var(--gap);
 }
 
 .cell {
-  width: 28px;
-  height: 28px;
+  position: relative;
+  z-index: 1;
+  width: var(--cell);
+  height: var(--cell);
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(11, 61, 92, 0.65);
   cursor: pointer;
   padding: 0;
+}
+
+.ship-hull {
+  position: absolute;
+  left: calc(var(--ship-col) * (var(--cell) + var(--gap)));
+  top: calc(var(--ship-row) * (var(--cell) + var(--gap)));
+  z-index: 2;
+  pointer-events: none;
 }
 
 .cell:disabled {
@@ -84,15 +96,13 @@ body {
   outline-offset: 1px;
 }
 
-.cell--ship {
-  background: var(--ship);
-}
-
 .cell--hit {
+  z-index: 3;
   background: var(--hit);
 }
 
 .cell--miss {
+  z-index: 3;
   background: var(--miss);
 }
 
@@ -134,12 +144,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .board__row {
-    grid-template-columns: repeat(10, 24px);
-  }
-
-  .cell {
-    width: 24px;
-    height: 24px;
+  .board__grid {
+    --cell: 24px;
   }
 }

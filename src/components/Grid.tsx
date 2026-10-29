@@ -1,5 +1,14 @@
-import type { ICoord, IGrid, IPlacementShip } from "../types";
+import type { CSSProperties } from "react";
+import { SHIP_HULLS } from "../assets/shipHulls";
+import type {
+  ICoord,
+  IGrid,
+  IOccupancy,
+  IPlacementShip,
+  IShipName,
+} from "../types";
 import { canPlaceShip, getShipCells } from "../utilities/placement/placement";
+import { listPlacedShips } from "../utilities/ships/placedShips";
 
 type IGridMode = "player" | "opponent";
 
@@ -8,6 +17,7 @@ type IGridProps = {
   grid: IGrid;
   mode: IGridMode;
   interactive: boolean;
+  occupancy: IOccupancy;
   cursor?: ICoord;
   placementShip?: IPlacementShip | null;
   onCellActivate: (coord: ICoord) => void;
@@ -33,7 +43,6 @@ function cellLabel(
 }
 
 function cellClassName(
-  mode: IGridMode,
   cell: IGrid[number][number],
   isPreview: boolean,
   previewValid: boolean | null,
@@ -41,7 +50,6 @@ function cellClassName(
   const classes = ["cell"];
   if (cell.isShot && cell.hasShip) classes.push("cell--hit");
   else if (cell.isShot) classes.push("cell--miss");
-  else if (mode === "player" && cell.hasShip) classes.push("cell--ship");
 
   if (isPreview) {
     classes.push(previewValid ? "cell--preview-valid" : "cell--preview-invalid");
@@ -49,11 +57,47 @@ function cellClassName(
   return classes.join(" ");
 }
 
+function hullStyle(head: ICoord): CSSProperties {
+  return {
+    "--ship-row": head.row,
+    "--ship-col": head.col,
+  } as CSSProperties;
+}
+
+function HullImage({
+  name,
+  isHorizontal,
+  head,
+  preview = false,
+}: {
+  name: IShipName;
+  isHorizontal: boolean;
+  head: ICoord;
+  preview?: boolean;
+}) {
+  const classes = [
+    "ship-hull",
+    isHorizontal ? "ship-hull--horizontal" : "ship-hull--vertical",
+  ];
+  if (preview) classes.push("ship-hull--preview");
+
+  return (
+    <img
+      className={classes.join(" ")}
+      src={SHIP_HULLS[name]}
+      alt=""
+      data-ship={name}
+      style={hullStyle(head)}
+    />
+  );
+}
+
 export function Grid({
   label,
   grid,
   mode,
   interactive,
+  occupancy,
   cursor,
   placementShip,
   onCellActivate,
@@ -68,6 +112,8 @@ export function Grid({
       ? canPlaceShip(grid, cursor, placementShip)
       : null;
   const previewKey = new Set(previewCells.map((c) => `${c.row},${c.col}`));
+  const placedShips = listPlacedShips(occupancy);
+  const showPreview = mode === "player" && placementShip && cursor;
 
   return (
     <section className="board" aria-label={label}>
@@ -83,12 +129,7 @@ export function Grid({
                   key={`${rowIndex}-${colIndex}`}
                   type="button"
                   role="gridcell"
-                  className={cellClassName(
-                    mode,
-                    cell,
-                    isPreview,
-                    previewValid,
-                  )}
+                  className={cellClassName(cell, isPreview, previewValid)}
                   aria-label={cellLabel(mode, cell, rowIndex, colIndex)}
                   disabled={!interactive || cell.isShot}
                   onFocus={() => onCursorMove?.(coord)}
@@ -99,6 +140,22 @@ export function Grid({
             })}
           </div>
         ))}
+        {placedShips.map((ship) => (
+          <HullImage
+            key={ship.name}
+            name={ship.name}
+            isHorizontal={ship.isHorizontal}
+            head={ship.head}
+          />
+        ))}
+        {showPreview ? (
+          <HullImage
+            name={placementShip.name}
+            isHorizontal={placementShip.isHorizontal}
+            head={cursor}
+            preview
+          />
+        ) : null}
       </div>
     </section>
   );

@@ -106,6 +106,7 @@ export default function App() {
           grid={state.playerGrid}
           mode="player"
           interactive={playerInteractive}
+          occupancy={state.playerOccupancy}
           cursor={state.phase === "placing" ? state.cursor : undefined}
           placementShip={state.placementShip}
           onCursorMove={(coord) => {
@@ -120,6 +121,7 @@ export default function App() {
           grid={state.opponentGrid}
           mode="opponent"
           interactive={opponentInteractive}
+          occupancy={state.opponentOccupancy}
           onCellActivate={handleOpponentCell}
         />
       </div>
