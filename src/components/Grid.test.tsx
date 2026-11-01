@@ -49,7 +49,12 @@ describe("Grid hulls", () => {
     expect(images).toHaveLength(1);
     expect(images[0]).toHaveAttribute("alt", "");
     expect(images[0]).toHaveAttribute("data-ship", "carrier");
-    expect(images[0]).toHaveClass("ship-hull", "ship-hull--horizontal");
+    expect(images[0]).toHaveClass(
+      "ship-hull",
+      "ship-hull--horizontal",
+      "ship-hull--rotated",
+    );
+    expect(images[0].style.getPropertyValue("--ship-length")).toBe("5");
     expect(images[0]).not.toHaveClass("ship-hull--preview");
 
     const shipCell = screen.getByRole("gridcell", {
@@ -58,17 +63,30 @@ describe("Grid hulls", () => {
     expect(shipCell).not.toHaveClass("cell--ship");
   });
 
-  it("renders placed hulls on the opponent grid", () => {
+  it("hides opponent hulls until that ship is sunk", () => {
     const occupancy = carrierOccupancy();
-    const { container } = render(
+    const { container, rerender } = render(
       <Grid
         label="Opponent"
         grid={gridFor(occupancy)}
         mode="opponent"
         interactive
         occupancy={occupancy}
-        placementShip={battleshipPreview}
-        cursor={{ row: 0, col: 0 }}
+        sunkShips={[]}
+        onCellActivate={() => undefined}
+      />,
+    );
+
+    expect(hulls(container)).toHaveLength(0);
+
+    rerender(
+      <Grid
+        label="Opponent"
+        grid={gridFor(occupancy)}
+        mode="opponent"
+        interactive
+        occupancy={occupancy}
+        sunkShips={["carrier"]}
         onCellActivate={() => undefined}
       />,
     );
@@ -76,7 +94,11 @@ describe("Grid hulls", () => {
     const images = hulls(container);
     expect(images).toHaveLength(1);
     expect(images[0]).toHaveAttribute("data-ship", "carrier");
-    expect(images[0]).not.toHaveClass("ship-hull--preview");
+    expect(images[0]).toHaveClass(
+      "ship-hull--horizontal",
+      "ship-hull--rotated",
+      "ship-hull--reveal",
+    );
   });
 
   it("renders the placement preview only on the player grid", () => {
@@ -101,6 +123,8 @@ describe("Grid hulls", () => {
     );
     expect(preview).toHaveAttribute("data-ship", "battleship");
     expect(preview).toHaveClass("ship-hull--vertical");
+    expect(preview).not.toHaveClass("ship-hull--rotated", "ship-hull--reveal");
+    expect(preview?.style.getPropertyValue("--ship-length")).toBe("4");
     expect(preview).toHaveAttribute("alt", "");
   });
 

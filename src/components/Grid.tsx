@@ -18,6 +18,7 @@ type IGridProps = {
   mode: IGridMode;
   interactive: boolean;
   occupancy: IOccupancy;
+  sunkShips?: readonly IShipName[];
   cursor?: ICoord;
   placementShip?: IPlacementShip | null;
   onCellActivate: (coord: ICoord) => void;
@@ -57,10 +58,11 @@ function cellClassName(
   return classes.join(" ");
 }
 
-function hullStyle(head: ICoord): CSSProperties {
+function hullStyle(head: ICoord, length: number): CSSProperties {
   return {
     "--ship-row": head.row,
     "--ship-col": head.col,
+    "--ship-length": length,
   } as CSSProperties;
 }
 
@@ -68,18 +70,22 @@ function HullImage({
   name,
   isHorizontal,
   head,
+  length,
   preview = false,
 }: {
   name: IShipName;
   isHorizontal: boolean;
   head: ICoord;
+  length: number;
   preview?: boolean;
 }) {
   const classes = [
     "ship-hull",
     isHorizontal ? "ship-hull--horizontal" : "ship-hull--vertical",
   ];
+  if (isHorizontal) classes.push("ship-hull--rotated");
   if (preview) classes.push("ship-hull--preview");
+  else classes.push("ship-hull--reveal");
 
   return (
     <img
@@ -87,7 +93,7 @@ function HullImage({
       src={SHIP_HULLS[name]}
       alt=""
       data-ship={name}
-      style={hullStyle(head)}
+      style={hullStyle(head, length)}
     />
   );
 }
@@ -98,6 +104,7 @@ export function Grid({
   mode,
   interactive,
   occupancy,
+  sunkShips = [],
   cursor,
   placementShip,
   onCellActivate,
@@ -112,7 +119,9 @@ export function Grid({
       ? canPlaceShip(grid, cursor, placementShip)
       : null;
   const previewKey = new Set(previewCells.map((c) => `${c.row},${c.col}`));
-  const placedShips = listPlacedShips(occupancy);
+  const placedShips = listPlacedShips(occupancy).filter(
+    (ship) => mode === "player" || sunkShips.includes(ship.name),
+  );
   const showPreview = mode === "player" && placementShip && cursor;
 
   return (
@@ -146,6 +155,7 @@ export function Grid({
             name={ship.name}
             isHorizontal={ship.isHorizontal}
             head={ship.head}
+            length={ship.length}
           />
         ))}
         {showPreview ? (
@@ -153,6 +163,7 @@ export function Grid({
             name={placementShip.name}
             isHorizontal={placementShip.isHorizontal}
             head={cursor}
+            length={placementShip.length}
             preview
           />
         ) : null}

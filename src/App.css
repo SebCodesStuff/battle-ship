@@ -83,7 +83,54 @@ body {
   left: calc(var(--ship-col) * (var(--cell) + var(--gap)));
   top: calc(var(--ship-row) * (var(--cell) + var(--gap)));
   z-index: 2;
+  width: auto;
+  height: calc((var(--cell) + var(--gap)) * var(--ship-length));
+  max-width: calc(var(--cell) + 9px);
   pointer-events: none;
+}
+
+.ship-hull[data-ship="carrier"] {
+  max-width: none;
+}
+
+.ship-hull--reveal {
+  animation: ship-reveal 0.6s ease-out;
+}
+
+@keyframes ship-reveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.ship-hull:not([data-ship="carrier"]) {
+  top: calc(var(--ship-row) * (var(--cell) + var(--gap)) + 14px);
+}
+
+.ship-hull--horizontal:not([data-ship="carrier"]) {
+  left: calc(var(--ship-col) * (var(--cell) + var(--gap)) + 5px);
+}
+
+.ship-hull--vertical:not([data-ship="carrier"]) {
+  left: calc(var(--ship-col) * (var(--cell) + var(--gap)) + 10px);
+}
+
+.ship-hull--vertical[data-ship="battleship"],
+.ship-hull--vertical[data-ship="destroyer"] {
+  left: calc(var(--ship-col) * (var(--cell) + var(--gap)) + 13px);
+}
+
+.ship-hull--vertical[data-ship="patrol boat"] {
+  left: calc(var(--ship-col) * (var(--cell) + var(--gap)) + 16px);
+}
+
+.ship-hull--rotated {
+  transform-origin: top left;
+  transform: rotate(-90deg) translateX(-100%);
 }
 
 .cell:disabled {
@@ -98,7 +145,31 @@ body {
 
 .cell--hit {
   z-index: 3;
-  background: var(--hit);
+  background-color: transparent;
+  background-image: url("./assets/explosion.png");
+  background-repeat: no-repeat;
+  background-size: calc(var(--cell) * 4) calc(var(--cell) * 4);
+  animation: hit-explosion 0.8s steps(1, end) forwards;
+}
+
+@keyframes hit-explosion {
+  0% { background-position: 0 0; }
+  6.25% { background-position: calc(var(--cell) * -1) 0; }
+  12.5% { background-position: calc(var(--cell) * -2) 0; }
+  18.75% { background-position: calc(var(--cell) * -3) 0; }
+  25% { background-position: 0 calc(var(--cell) * -1); }
+  31.25% { background-position: calc(var(--cell) * -1) calc(var(--cell) * -1); }
+  37.5% { background-position: calc(var(--cell) * -2) calc(var(--cell) * -1); }
+  43.75% { background-position: calc(var(--cell) * -3) calc(var(--cell) * -1); }
+  50% { background-position: 0 calc(var(--cell) * -2); }
+  56.25% { background-position: calc(var(--cell) * -1) calc(var(--cell) * -2); }
+  62.5% { background-position: calc(var(--cell) * -2) calc(var(--cell) * -2); }
+  68.75% { background-position: calc(var(--cell) * -3) calc(var(--cell) * -2); }
+  75% { background-position: 0 calc(var(--cell) * -3); }
+  81.25% { background-position: calc(var(--cell) * -1) calc(var(--cell) * -3); }
+  87.5% { background-position: calc(var(--cell) * -2) calc(var(--cell) * -3); }
+  93.75% { background-position: calc(var(--cell) * -3) calc(var(--cell) * -3); }
+  100% { background-position: calc(var(--cell) * -1) calc(var(--cell) * -1); }
 }
 
 .cell--miss {

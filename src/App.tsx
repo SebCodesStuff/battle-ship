@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Grid } from "./components/Grid";
 import { PlacementControls } from "./components/PlacementControls";
 import { StatusBar } from "./components/StatusBar";
-import type { ICoord, IGameState } from "./types";
+import type { ICoord, IGameState, IShipName } from "./types";
 import {
   createInitialGameState,
   fireAsPlayer,
@@ -122,6 +122,14 @@ export default function App() {
           mode="opponent"
           interactive={opponentInteractive}
           occupancy={state.opponentOccupancy}
+          sunkShips={(
+            Object.entries(state.opponentFleet.remainingHits) as [
+              IShipName,
+              number,
+            ][]
+          )
+            .filter(([, hits]) => hits === 0)
+            .map(([name]) => name)}
           onCellActivate={handleOpponentCell}
         />
       </div>
