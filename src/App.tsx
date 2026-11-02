@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Grid } from "./components/Grid";
 import { PlacementControls } from "./components/PlacementControls";
 import { StatusBar } from "./components/StatusBar";
-import type { ICoord, IGameState } from "./types";
+import type { ICoord, IGameState, IShipName } from "./types";
 import {
   createInitialGameState,
   fireAsPlayer,
@@ -106,6 +106,7 @@ export default function App() {
           grid={state.playerGrid}
           mode="player"
           interactive={playerInteractive}
+          occupancy={state.playerOccupancy}
           cursor={state.phase === "placing" ? state.cursor : undefined}
           placementShip={state.placementShip}
           onCursorMove={(coord) => {
@@ -120,6 +121,15 @@ export default function App() {
           grid={state.opponentGrid}
           mode="opponent"
           interactive={opponentInteractive}
+          occupancy={state.opponentOccupancy}
+          sunkShips={(
+            Object.entries(state.opponentFleet.remainingHits) as [
+              IShipName,
+              number,
+            ][]
+          )
+            .filter(([, hits]) => hits === 0)
+            .map(([name]) => name)}
           onCellActivate={handleOpponentCell}
         />
       </div>
